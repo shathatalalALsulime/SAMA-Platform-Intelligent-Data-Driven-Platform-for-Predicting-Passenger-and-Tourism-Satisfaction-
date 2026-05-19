@@ -34,3 +34,74 @@ kpi-analysis/
 prediction-models/
     README.md
     prediction-models.ipynb
+
+Project Components
+1. Data Cleaning & Feature Engineering
+
+This module focuses on:
+
+Data preprocessing and cleaning
+Handling missing values and outliers
+Arabic text normalization and preprocessing
+Feature engineering and transformation
+Preparing structured datasets for analysis and modeling
+2. Sentiment Analysis
+
+This module performs:
+
+Arabic sentiment preprocessing
+Lexicon-based sentiment analysis
+TF-IDF vectorization
+Machine learning sentiment classification
+Topic classification for passenger feedback
+Sentiment scoring and evaluation
+
+Models used:
+
+Logistic Regression
+Linear SVM
+Random Forest
+3. KPI Analysis
+
+This module analyzes operational and passenger satisfaction KPIs, including:
+
+Satisfaction metrics
+Airline performance comparison
+Seasonal analysis
+Sentiment vs satisfaction correlation
+Service quality indicators
+Operational efficiency metrics
+4. Prediction Models
+
+This module develops predictive machine learning models for:
+
+Passenger satisfaction prediction
+Classification tasks
+Model evaluation and comparison
+Performance metrics analysis
+Technologies Used
+Python
+Pandas
+NumPy
+Scikit-learn
+Matplotlib
+Seaborn
+Google Colab
+
+
+Dataset
+
+The dataset used in this project contains airline passenger reviews, operational indicators, sentiment labels, and satisfaction-related features.
+
+If the dataset size exceeds GitHub upload limitations, a dataset link or sample dataset is provided separately.
+
+
+How to Run the Project
+Clone the repository:
+git clone <repository-link>
+Install required libraries:
+pip install -r requirements.txt
+Open the notebooks using:
+Google Colab
+Jupyter Notebook
+Run notebooks sequentially according to the project pipeline.
