@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Traveler Dashboard — SAMA Platform{% endblock %}
+{% block content %}
+<div class="page-header animate-in">
+    <h1><i class="fas fa-suitcase-rolling" style="color:var(--accent-blue);"></i> <span class="gradient-text">Traveler Dashboard</span></h1>
+    <p>قارن شركات الطيران واختر الأفضل لرحلتك — Compare airlines and find your best flight</p>
+</div>
+
+<!-- Airline Comparison Table -->
+<div class="card animate-in delay-1" style="margin-bottom:1.5rem;">
+    <div class="card-title"><i class="fas fa-balance-scale"></i> Airline Comparison — مقارنة شركات الطيران</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Airline</th><th>Flights</th><th>On-Time %</th><th>Satisfaction</th>
+                    <th>Positive %</th><th>Avg Delay</th><th>Service</th>
+                    <th>Check-in</th><th>Boarding</th><th>Baggage</th><th>Complaints</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in airlines %}
+                <tr>
+                    <td><span class="airline-tag {{ a.name|lower }}">{{ a.name }}</span></td>
+                    <td>{{ "{:,.0f}".format(a.total_flights) }}</td>
+                    <td><strong style="color:var(--accent-green)">{{ a.ontime_rate }}%</strong></td>
+                    <td><strong style="color:var(--accent-cyan)">{{ a.avg_satisfaction }}</strong></td>
+                    <td>{{ a.positive_rate }}%</td>
+                    <td>{{ a.avg_delay }} min</td>
+                    <td>{{ a.avg_service }}/5</td>
+                    <td>{{ a.avg_checkin }} min</td>
+                    <td>{{ a.avg_boarding }} min</td>
+                    <td>{{ a.avg_baggage }} min</td>
+                    <td>{{ a.complaint_rate }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="grid-2 animate-in delay-2">
+    <!-- Topic Ratings -->
+    <div class="card">
+        <div class="card-title"><i class="fas fa-tags"></i> Ratings by Topic — التقييم حسب الموضوع</div>
+        <div class="chart-container"><canvas id="topicChart"></canvas></div>
+    </div>
+
+    <!-- Top Routes -->
+    <div class="card">
+        <div class="card-title"><i class="fas fa-route"></i> Top Routes — أفضل الوجهات</div>
+        <div class="table-wrap" style="max-height:350px; overflow-y:auto;">
+            <table>
+                <thead><tr><th>Route</th><th>Airline</th><th>Satisfaction</th><th>On-Time</th></tr></thead>
+                <tbody>
+                    {% for r in routes %}
+                    <tr>
+                        <td style="font-weight:600;">{{ r.route }}</td>
+                        <td><span class="airline-tag {{ r.airline_name|lower }}">{{ r.airline_name }}</span></td>
+                        <td><strong style="color:var(--accent-cyan)">{{ r.avg_sat }}</strong></td>
+                        <td>{{ r.ontime_pct }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Airport Guide -->
+<div class="card animate-in delay-3">
+    <div class="card-title"><i class="fas fa-map-marker-alt"></i> Airport Guide — دليل المطارات</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-top:0.5rem;">
+        {% for code, info in airports.items() %}
+        <div style="text-align:center; padding:1rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border:1px solid var(--border);">
+            <div style="font-size:28px; margin-bottom:4px;">✈️</div>
+            <div style="font-size:18px; font-weight:700;">{{ code }}</div>
+            <div style="color:var(--text-muted); font-size:13px;">{{ info.en }}</div>
+            <div style="color:var(--text-muted); font-size:14px; font-family:'IBM Plex Sans Arabic';">{{ info.ar }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+fetch('/api/chart/sentiment_topics').then(r=>r.json()).then(data => {
+    new Chart(document.getElementById('topicChart'), {
+        type: 'bar',
+        data: {
+            labels: data.topics,
+            datasets: [{
+                label: 'Sentiment Score',
+                data: data.scores,
+                backgroundColor: data.scores.map(s => s >= 0 ? '#10B981CC' : '#EF4444CC'),
+                borderRadius: 6
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }},
+            scales: {
+                x: { ticks: { color: '#64748B' }, grid: { color: '#2A3548' }},
+                y: { ticks: { color: '#94A3B8' }, grid: { display: false }}
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

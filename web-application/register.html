@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — SAMA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root { --bg:#0B0F1A; --card:#1A2332; --border:#2A3548; --text:#F1F5F9; --muted:#64748B; --blue:#3B82F6; --cyan:#06B6D4; --green:#10B981; --red:#EF4444; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Plus Jakarta Sans','IBM Plex Sans Arabic',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        body::before { content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(ellipse at 30% 40%,rgba(59,130,246,0.06) 0%,transparent 50%); z-index:-1; }
+        .login-box { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:3rem 2.5rem; width:420px; max-width:90vw; }
+        .login-box::before { content:''; display:block; height:4px; border-radius:4px 4px 0 0; margin:-3rem -2.5rem 2rem; background:linear-gradient(90deg,var(--blue),var(--cyan)); }
+        .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:13px; text-decoration:none; margin-bottom:1.5rem; }
+        .back-link:hover { color:var(--text); }
+        h1 { font-size:24px; font-weight:700; margin-bottom:4px; }
+        .subtitle { color:var(--muted); font-size:14px; font-family:'IBM Plex Sans Arabic'; margin-bottom:2rem; }
+        .form-group { margin-bottom:1.25rem; }
+        .form-group label { display:block; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; margin-bottom:6px; }
+        .form-group input, .form-group select { width:100%; padding:12px 14px; background:#111827; border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:15px; font-family:inherit; }
+        .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+        .btn { width:100%; padding:14px; border:none; border-radius:10px; font-size:15px; font-weight:600; font-family:inherit; cursor:pointer; background:linear-gradient(135deg,#3B82F6,#06B6D4); color:white; margin-top:0.5rem; display:flex; align-items:center; justify-content:center; gap:8px; }
+        .btn:hover { transform:translateY(-1px); box-shadow:0 8px 25px rgba(59,130,246,0.3); }
+        .register-link { text-align:center; margin-top:1.5rem; font-size:14px; color:var(--muted); }
+        .register-link a { color:var(--blue); text-decoration:none; font-weight:600; }
+        .flash { padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:1rem; }
+        .flash.error { background:rgba(239,68,68,0.15); color:#F87171; }
+        .flash.success { background:rgba(16,185,129,0.15); color:#34D399; }
+        .hint { font-size:11px; color:var(--muted); margin-top:4px; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <a href="/login/{{ role }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Login</a>
+        <h1>{{ 'Traveler Registration' if role=='traveler' else 'Airline Registration' }}</h1>
+        <div class="subtitle">{{ 'إنشاء حساب مسافر' if role=='traveler' else 'إنشاء حساب شركة طيران' }}</div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label>Full Name — الاسم</label>
+                <input type="text" name="name" placeholder="{{ 'Ahmed Mohammed' if role=='traveler' else 'Admin Name' }}" required>
+            </div>
+            <div class="form-group">
+                <label>User ID — رقم المستخدم</label>
+                <input type="text" name="user_id" placeholder="12345678" maxlength="8" pattern="\d{8}" required>
+                <div class="hint">Must be exactly 8 digits — يجب أن يكون 8 أرقام</div>
+            </div>
+            <div class="form-group">
+                <label>Password — كلمة المرور</label>
+                <input type="password" name="password" placeholder="••••••" minlength="4" required>
+            </div>
+            {% if role == 'airline' %}
+            <div class="form-group">
+                <label>Airline — شركة الطيران</label>
+                <select name="airline_name" required>
+                    <option value="Saudia">Saudia — السعودية</option>
+                    <option value="Flynas">Flynas — فلاي ناس</option>
+                    <option value="Flyadeal">Flyadeal — فلاي أديل</option>
+                </select>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn"><i class="fas fa-user-plus"></i> Register — إنشاء حساب</button>
+        </form>
+
+        <div class="register-link">
+            Already have an account? <a href="/login/{{ role }}">Login — تسجيل الدخول</a>
+        </div>
+    </div>
+</body>
+</html>

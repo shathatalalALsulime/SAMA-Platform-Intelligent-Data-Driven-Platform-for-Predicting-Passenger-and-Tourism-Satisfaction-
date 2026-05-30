@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SAMA Platform{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0B0F1A;
+            --bg-secondary: #111827;
+            --bg-card: #1A2332;
+            --bg-card-hover: #1F2B3D;
+            --border: #2A3548;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --accent-blue: #3B82F6;
+            --accent-cyan: #06B6D4;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --accent-amber: #F59E0B;
+            --accent-purple: #8B5CF6;
+            --saudia: #006B3F;
+            --flynas: #7B2D8E;
+            --flyadeal: #E31837;
+            --gradient-main: linear-gradient(135deg, #3B82F6, #06B6D4);
+            --gradient-card: linear-gradient(145deg, #1A2332, #0F1724);
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.3);
+            --shadow-glow: 0 0 40px rgba(59,130,246,0.15);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'IBM Plex Sans Arabic', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== AMBIENT BACKGROUND ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(6,182,212,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 60% 80%, rgba(139,92,246,0.03) 0%, transparent 50%);
+            z-index: -1;
+            animation: ambientShift 20s ease-in-out infinite alternate;
+        }
+        @keyframes ambientShift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-3%, -3%) rotate(2deg); }
+        }
+
+        /* ===== NAVIGATION ===== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(11, 15, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .nav-brand .logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .nav-brand .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .nav-brand span {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+        .nav-brand small {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 400;
+            display: block;
+            margin-top: -2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--text-primary);
+            background: rgba(59,130,246,0.1);
+        }
+        .nav-links a.active {
+            background: rgba(59,130,246,0.15);
+            color: var(--accent-blue);
+        }
+        .nav-links .alert-badge {
+            background: var(--accent-red);
+            color: white;
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main { padding: 88px 2rem 3rem; max-width: 1400px; margin: 0 auto; }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+        .page-header h1 .gradient-text {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+        .card:hover {
+            border-color: rgba(59,130,246,0.3);
+            box-shadow: var(--shadow-glow);
+        }
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title i { color: var(--accent-blue); }
+
+        /* ===== KPI CARDS ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .kpi-card {
+            background: var(--gradient-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-main);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .kpi-card:hover::before { opacity: 1; }
+        .kpi-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .kpi-value.green { color: var(--accent-green); }
+        .kpi-value.blue { color: var(--accent-blue); }
+        .kpi-value.red { color: var(--accent-red); }
+        .kpi-value.amber { color: var(--accent-amber); }
+        .kpi-value.cyan { color: var(--accent-cyan); }
+        .kpi-value.purple { color: var(--accent-purple); }
+        .kpi-unit {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ===== GRID LAYOUTS ===== */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .grid-23 { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+        /* ===== TABLES ===== */
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(42,53,72,0.5);
+            color: var(--text-secondary);
+        }
+        tr:hover td { background: rgba(59,130,246,0.04); color: var(--text-primary); }
+
+        /* ===== AIRLINE TAGS ===== */
+        .airline-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .airline-tag.saudia { background: rgba(0,107,63,0.15); color: #34D399; }
+        .airline-tag.flynas { background: rgba(123,45,142,0.15); color: #C084FC; }
+        .airline-tag.flyadeal { background: rgba(227,24,55,0.15); color: #FB7185; }
+
+        /* ===== SEVERITY BADGES ===== */
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge.high { background: rgba(239,68,68,0.15); color: #F87171; }
+        .badge.medium { background: rgba(245,158,11,0.15); color: #FBBF24; }
+        .badge.low { background: rgba(16,185,129,0.15); color: #34D399; }
+
+        /* ===== CHART CONTAINERS ===== */
+        .chart-container { position: relative; width: 100%; min-height: 280px; }
+
+        /* ===== FORMS ===== */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .form-group { margin-bottom: 0.5rem; }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .form-group select:focus, .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: var(--gradient-main);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(59,130,246,0.3);
+        }
+
+        /* ===== PREDICTION RESULT ===== */
+        .result-card {
+            background: linear-gradient(145deg, #1A2332, #0F1724);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+        }
+        .result-card .big-number {
+            font-size: 56px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -2px;
+        }
+
+        /* ===== REVIEW CARDS ===== */
+        .review-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .review-text {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            direction: rtl;
+            text-align: right;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .review-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ===== AIRLINE SELECTOR ===== */
+        .airline-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .airline-selector a {
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .airline-selector a.active, .airline-selector a:hover {
+            color: white;
+            border-color: transparent;
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        /* ===== ANIMATION ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: fadeInUp 0.5s ease forwards; }
+        .delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .delay-3 { animation-delay: 0.3s; opacity: 0; }
+        .delay-4 { animation-delay: 0.4s; opacity: 0; }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-23 { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .nav-links a span { display: none; }
+            .main { padding: 80px 1rem 2rem; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="/" class="nav-brand">
+            <div class="logo"><img src="{{ url_for('static', filename='logo.png') }}" alt="SAMA Logo"></div>
+            <div>
+                <span>SAMA Platform</span>
+                <small>Saudi Aviation Analytics</small>
+            </div>
+        </a>
+        <div class="nav-links">
+            {% if session.get('role') == 'traveler' %}
+            <a href="/traveler" class="{% if request.path == '/traveler' %}active{% endif %}">
+                <i class="fas fa-home"></i><span>Home</span>
+            </a>
+            <a href="/traveler/compare" class="{% if request.path == '/traveler/compare' %}active{% endif %}">
+                <i class="fas fa-balance-scale"></i><span>Compare</span>
+            </a>
+            <a href="/predictions" class="{% if request.path == '/predictions' %}active{% endif %}">
+                <i class="fas fa-brain"></i><span>Predict</span>
+            </a>
+            <a href="/sentiment" class="{% if request.path == '/sentiment' %}active{% endif %}">
+                <i class="fas fa-comments"></i><span>Sentiment</span>
+            </a>
+            {% elif session.get('role') == 'airline' %}
+            <a href="/airline" class="{% if request.path.startswith('/airline') %}active{% endif %}">
+                <i class="fas fa-chart-line"></i><span>Dashboard</span>
+            </a>
+            <a href="/predictions" class="{% if request.path == '/predictions' %}active{% endif %}">
+                <i class="fas fa-brain"></i><span>Predict</span>
+            </a>
+            <a href="/sentiment" class="{% if request.path == '/sentiment' %}active{% endif %}">
+                <i class="fas fa-comments"></i><span>Sentiment</span>
+            </a>
+            <a href="/alerts" class="{% if request.path == '/alerts' %}active{% endif %}">
+                <i class="fas fa-bell"></i><span>Alerts</span>
+                {% if alert_count is defined and alert_count > 0 %}
+                <span class="alert-badge">{{ alert_count }}</span>
+                {% endif %}
+            </a>
+            {% endif %}
+            <!-- User info -->
+            {% if session.get('user_id') %}
+            <div style="display:flex; align-items:center; gap:8px; margin-left:16px; padding-left:16px; border-left:1px solid var(--border);">
+                <div style="text-align:right;">
+                    <div style="font-size:13px; font-weight:600; color:var(--text-primary);">{{ session.get('name','') }}</div>
+                    <div style="font-size:11px; color:var(--text-muted);">{{ session.get('role','')|title }} • {{ session.get('user_id','') }}</div>
+                </div>
+                <a href="/logout" style="color:var(--text-muted); font-size:16px; padding:6px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        SAMA Platform © 2025 — BSc Data Science Graduation Project — Umm Al-Qura University<br>
+        <span style="color: var(--accent-blue);">Intelligent Data-Driven Platform for Saudi Aviation</span>
+    </footer>
+
+    <!-- GLOBAL NOTIFICATION SYSTEM (all pages, airline users only) -->
+    {% if session.get('role') == 'airline' %}
+    <style>
+    #globalToastContainer { position:fixed; top:90px; right:20px; z-index:10000; display:flex; flex-direction:column; gap:10px; max-width:400px; pointer-events:none; }
+    .g-toast { background:rgba(26,35,50,0.97); border:1px solid rgba(245,158,11,0.3); border-radius:14px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start; box-shadow:0 8px 40px rgba(0,0,0,0.6); animation:gSlideIn 0.4s ease; pointer-events:auto; cursor:pointer; transition:all 0.3s; backdrop-filter:blur(12px); }
+    .g-toast:hover { transform:translateX(-4px); border-color:rgba(245,158,11,0.6); box-shadow:0 8px 40px rgba(245,158,11,0.15); }
+    .g-toast.closing { animation:gSlideOut 0.3s ease forwards; }
+    .g-toast-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .g-toast-icon.high { background:rgba(239,68,68,0.15); color:#F87171; }
+    .g-toast-icon.medium { background:rgba(245,158,11,0.15); color:#FBBF24; }
+    .g-toast-title { font-weight:600; font-size:13px; margin-bottom:3px; line-height:1.4; }
+    .g-toast-meta { font-size:11px; color:var(--text-muted); }
+    .g-toast-close { color:var(--text-muted); cursor:pointer; font-size:16px; line-height:1; }
+    .g-toast-close:hover { color:white; }
+    @keyframes gSlideIn { from{opacity:0;transform:translateX(120px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes gSlideOut { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(120px)} }
+    </style>
+    <div id="globalToastContainer"></div>
+    <script>
+    (function(){
+        let knownIds = new Set();
+        let firstLoad = true;
+
+        function showGlobalToast(alert) {
+            const c = document.getElementById('globalToastContainer');
+            if (!c) return;
+            const t = document.createElement('div');
+            t.className = 'g-toast';
+            t.innerHTML = `
+                <div class="g-toast-icon ${alert.severity}">
+                    <i class="fas ${alert.severity==='high'?'fa-exclamation-circle':'fa-exclamation-triangle'}"></i>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div class="g-toast-title">${alert.message}</div>
+                    <div class="g-toast-meta"><i class="fas fa-plane"></i> ${alert.airline||'All'} &bull; ${(alert.alert_type||'').replace(/_/g,' ')}</div>
+                </div>
+                <span class="g-toast-close" onclick="this.parentElement.classList.add('closing');setTimeout(()=>this.parentElement.remove(),300)">&times;</span>
+            `;
+            // Click toast to go to alerts page
+            t.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('g-toast-close')) window.location.href = '/alerts';
+            });
+            c.prepend(t);
+            playGlobalSound();
+            setTimeout(() => { if(t.parentElement){t.classList.add('closing');setTimeout(()=>t.remove(),300);} }, 8000);
+        }
+
+        function playGlobalSound() {
+            try {
+                const ctx = new (window.AudioContext||window.webkitAudioContext)();
+                const o = ctx.createOscillator(), g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                o.frequency.setValueAtTime(880, ctx.currentTime);
+                o.frequency.setValueAtTime(660, ctx.currentTime+0.1);
+                g.gain.setValueAtTime(0.15, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+0.3);
+                o.start(ctx.currentTime); o.stop(ctx.currentTime+0.3);
+            } catch(e){}
+        }
+
+        async function pollGlobal() {
+            try {
+                const r = await fetch('/api/alerts');
+                if (!r.ok) return;
+                const d = await r.json();
+                d.alerts.forEach(a => {
+                    const id = String(a.id);
+                    if (!knownIds.has(id)) { knownIds.add(id); if (!firstLoad) showGlobalToast(a); }
+                });
+                firstLoad = false;
+                // Update nav badge
+                const nb = document.querySelector('.alert-badge');
+                if (nb) nb.textContent = d.count;
+            } catch(e){}
+        }
+
+        // Demo alerts that fire on ANY page
+        const demos = [
+            {id:'gd1',message:'{{ session.get("airline_name","") }}: Satisfaction dropped to 52% on RUH→JED',severity:'high',alert_type:'Low_Satisfaction',airline:'{{ session.get("airline_name","") }}',metric_value:52.3,threshold:55},
+            {id:'gd2',message:'Delay rate exceeded 28% at Dammam Airport',severity:'medium',alert_type:'High_Delay_Rate',airline:'{{ session.get("airline_name","") }}',metric_value:28.4,threshold:25},
+            {id:'gd3',message:'Baggage claim time critical — avg 43 minutes',severity:'high',alert_type:'Service_Warning',airline:'{{ session.get("airline_name","") }}',metric_value:43.1,threshold:40},
+            {id:'gd4',message:'Hajj season crowd level critical at JED Airport',severity:'high',alert_type:'Crowd_Alert',airline:'{{ session.get("airline_name","") }}',metric_value:95,threshold:85},
+            {id:'gd5',message:'Complaint spike for "Meal Quality" — 89% negative',severity:'medium',alert_type:'Complaint_Spike',airline:'{{ session.get("airline_name","") }}',metric_value:89,threshold:65},
+        ];
+        let di = 0;
+        function nextGlobalDemo() {
+            if (di < demos.length) { showGlobalToast(demos[di]); di++; setTimeout(nextGlobalDemo, 30000+Math.random()*25000); }
+        }
+
+        // Start: poll every 30s + first demo after 20s
+        pollGlobal();
+        setInterval(pollGlobal, 30000);
+        setTimeout(nextGlobalDemo, 20000);
+    })();
+    </script>
+    {% endif %}
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

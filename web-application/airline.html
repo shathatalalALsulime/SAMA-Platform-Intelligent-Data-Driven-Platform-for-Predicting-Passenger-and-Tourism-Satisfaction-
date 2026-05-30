@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}{{ selected }} Dashboard — SAMA Platform{% endblock %}
+{% block content %}
+<div class="page-header animate-in">
+    <h1><i class="fas fa-chart-line" style="color:var(--accent-green);"></i> <span class="gradient-text">{% if is_competitor %}Competitor Analysis{% else %}Airline Dashboard{% endif %}</span></h1>
+    <p>{% if is_competitor %}تحليل المنافسين — Viewing {{ selected }} performance from {{ my_airline }}{% else %}لوحة تحكم شركة الطيران — Performance Monitoring & Analytics{% endif %}</p>
+</div>
+
+<!-- Airline from login session -->
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:1rem;" class="animate-in delay-1">
+    <div style="padding:10px 24px; border-radius:var(--radius-sm); font-weight:600; font-size:16px; color:white; background:{{ airline_colors.get(selected, '#3B82F6') }};">
+        {{ selected }}
+    </div>
+    {% if is_competitor %}
+    <span style="color:var(--accent-amber); font-size:14px;"><i class="fas fa-binoculars"></i> عرض المنافس — Competitor View</span>
+    {% else %}
+    <span style="color:var(--text-muted); font-size:14px;">بيانات شركتك — Your airline's data</span>
+    {% endif %}
+</div>
+
+<!-- Competitor Selector -->
+<div class="card animate-in delay-1" style="margin-bottom:1.5rem; padding:1rem 1.5rem;">
+    <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <span style="font-size:13px; color:var(--text-muted);"><i class="fas fa-eye"></i> تحليل المنافسين — View Competitor:</span>
+        {% for a in ['Saudia', 'Flynas', 'Flyadeal'] %}
+        {% if a != my_airline %}
+        <a href="/airline/competitor?view={{ a }}" style="padding:8px 18px; border-radius:var(--radius-sm); border:1px solid {{ airline_colors[a] }}; color:{% if selected==a and is_competitor %}white{% else %}{{ airline_colors[a] }}{% endif %}; background:{% if selected==a and is_competitor %}{{ airline_colors[a] }}{% else %}transparent{% endif %}; text-decoration:none; font-size:13px; font-weight:600; transition:all 0.2s;">
+            <i class="fas fa-chart-bar"></i> {{ a }}
+        </a>
+        {% endif %}
+        {% endfor %}
+        {% if is_competitor %}
+        <a href="/airline" style="padding:8px 18px; border-radius:var(--radius-sm); border:1px solid var(--border); color:var(--text-muted); text-decoration:none; font-size:13px; font-weight:600;">
+            <i class="fas fa-arrow-left"></i> Back to {{ my_airline }}
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid animate-in delay-1">
+    <div class="kpi-card">
+        <div class="kpi-label">Total Flights</div>
+        <div class="kpi-value blue">{{ "{:,.0f}".format(kpis.total_flights) }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">On-Time Rate</div>
+        <div class="kpi-value green">{{ kpis.ontime_rate }}%</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Satisfaction</div>
+        <div class="kpi-value cyan">{{ kpis.avg_satisfaction }}</div>
+        <span class="kpi-unit">/ 100</span>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Efficiency Score</div>
+        <div class="kpi-value purple">{{ kpis.avg_efficiency }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Positive Reviews</div>
+        <div class="kpi-value green">{{ kpis.positive_rate }}%</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Avg Delay</div>
+        <div class="kpi-value amber">{{ kpis.avg_delay }}</div>
+        <span class="kpi-unit">min</span>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Service Rating</div>
+        <div class="kpi-value cyan">{{ kpis.avg_service }}</div>
+        <span class="kpi-unit">/ 5.0</span>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Complaint Rate</div>
+        <div class="kpi-value red">{{ kpis.complaint_rate }}%</div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="grid-2 animate-in delay-2">
+    <div class="card">
+        <div class="card-title"><i class="fas fa-chart-area"></i> Monthly Satisfaction & Delay Trend</div>
+        <div class="chart-container"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-title"><i class="fas fa-tags"></i> Complaint Topics</div>
+        <div class="chart-container"><canvas id="topicsChart"></canvas></div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="grid-2 animate-in delay-3">
+    <!-- Airport Performance -->
+    <div class="card">
+        <div class="card-title"><i class="fas fa-map-marker-alt"></i> Airport Performance</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Airport</th><th>Satisfaction</th><th>On-Time %</th><th>Flights</th></tr></thead>
+                <tbody>
+                    {% for ap in airport_perf %}
+                    <tr>
+                        <td><strong>{{ airports.get(ap.destination_city, {}).get('en', ap.destination_city) }}</strong>
+                            <span style="color:var(--text-muted); font-size:12px;"> ({{ ap.destination_city }})</span></td>
+                        <td><strong style="color:var(--accent-cyan)">{{ ap.avg_sat }}</strong></td>
+                        <td>{{ ap.ontime_pct }}%</td>
+                        <td>{{ "{:,}".format(ap.flights) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Delay Reasons -->
+    <div class="card">
+        <div class="card-title"><i class="fas fa-exclamation-circle"></i> Delay Reasons</div>
+        <div class="chart-container"><canvas id="delayChart"></canvas></div>
+    </div>
+</div>
+
+<!-- Wait Times -->
+<div class="card animate-in delay-4">
+    <div class="card-title"><i class="fas fa-stopwatch"></i> Service Wait Times — أوقات الانتظار</div>
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:2rem; margin-top:1rem;">
+        <div style="text-align:center;">
+            <div style="font-size:40px; font-weight:800; font-family:'JetBrains Mono',monospace; color:var(--accent-blue);">{{ kpis.avg_checkin }}</div>
+            <div style="color:var(--text-muted); font-size:13px; margin-top:4px;">CHECK-IN (min)</div>
+            <div class="progress-bar" style="margin-top:8px;"><div class="fill" style="width:{{ (kpis.avg_checkin/45*100)|int }}%; background:var(--accent-blue);"></div></div>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size:40px; font-weight:800; font-family:'JetBrains Mono',monospace; color:var(--accent-amber);">{{ kpis.avg_boarding }}</div>
+            <div style="color:var(--text-muted); font-size:13px; margin-top:4px;">BOARDING (min)</div>
+            <div class="progress-bar" style="margin-top:8px;"><div class="fill" style="width:{{ (kpis.avg_boarding/50*100)|int }}%; background:var(--accent-amber);"></div></div>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size:40px; font-weight:800; font-family:'JetBrains Mono',monospace; color:var(--accent-purple);">{{ kpis.avg_baggage }}</div>
+            <div style="color:var(--text-muted); font-size:13px; margin-top:4px;">BAGGAGE CLAIM (min)</div>
+            <div class="progress-bar" style="margin-top:8px;"><div class="fill" style="width:{{ (kpis.avg_baggage/60*100)|int }}%; background:var(--accent-purple);"></div></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Monthly trend
+fetch('/api/chart/monthly_trend?airline={{ selected }}').then(r=>r.json()).then(data => {
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [
+                { label: 'Satisfaction', data: data.satisfaction, borderColor: '#06B6D4', backgroundColor: 'rgba(6,182,212,0.1)', fill: true, tension: 0.4 },
+                { label: 'On-Time %', data: data.ontime, borderColor: '#10B981', borderDash: [5,5], tension: 0.4 }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94A3B8' }}},
+            scales: { x: { ticks: { color: '#64748B', maxTicksLimit: 12 }, grid: { display: false }},
+                      y: { ticks: { color: '#64748B' }, grid: { color: '#2A3548' }}}}
+    });
+});
+
+// Topics
+const topicData = {{ topics|tojson }};
+new Chart(document.getElementById('topicsChart'), {
+    type: 'doughnut',
+    data: {
+        labels: topicData.map(t => t.topic),
+        datasets: [{ data: topicData.map(t => t.cnt),
+            backgroundColor: ['#3B82F6','#06B6D4','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899'],
+            borderColor: '#1A2332', borderWidth: 3 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'right', labels: { color: '#94A3B8', padding: 12, font: { size: 12 } }}}}
+});
+
+// Delay reasons
+const delayData = {{ delay_reasons|tojson }};
+if (delayData.length > 0) {
+    new Chart(document.getElementById('delayChart'), {
+        type: 'bar',
+        data: {
+            labels: delayData.map(d => d.delay_reason),
+            datasets: [{
+                label: 'Count', data: delayData.map(d => d.cnt),
+                backgroundColor: ['#EF4444CC','#F59E0BCC','#3B82F6CC','#8B5CF6CC'],
+                borderRadius: 6
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }},
+            scales: { x: { ticks: { color: '#94A3B8' }, grid: { display: false }},
+                      y: { ticks: { color: '#64748B' }, grid: { color: '#2A3548' }}}}
+    });
+}
+</script>
+{% endblock %}

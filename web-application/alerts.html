@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Early Warning System — SAMA Platform{% endblock %}
+{% block content %}
+<div class="page-header animate-in">
+    <h1><i class="fas fa-bell" style="color:var(--accent-amber);"></i> <span class="gradient-text">Early Warning System</span></h1>
+    <p>نظام الإنذار المبكر — Real-time alerts for performance issues</p>
+</div>
+
+<!-- Live Status Bar -->
+<div class="card animate-in delay-1" style="padding:0.75rem 1.5rem; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <div id="liveIndicator" style="width:10px; height:10px; border-radius:50%; background:var(--accent-green); animation:pulse 2s infinite;"></div>
+        <span style="font-size:13px; color:var(--text-muted);">Live Monitoring — <span id="lastUpdate">Just now</span></span>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:12px; color:var(--text-muted);">Auto-refresh: 30s</span>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:var(--text-muted);">
+            <input type="checkbox" id="soundToggle" checked style="accent-color:var(--accent-blue);"> Sound
+        </label>
+    </div>
+</div>
+
+<style>
+@keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,0.5)} 50%{opacity:0.8;box-shadow:0 0 0 8px rgba(16,185,129,0)} }
+#toastContainer { position:fixed; top:90px; right:20px; z-index:10000; display:flex; flex-direction:column; gap:10px; max-width:400px; pointer-events:none; }
+.toast { background:rgba(26,35,50,0.97); border:1px solid rgba(245,158,11,0.3); border-radius:14px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start; box-shadow:0 8px 40px rgba(0,0,0,0.6); animation:slideIn 0.4s ease; pointer-events:auto; cursor:pointer; transition:all 0.3s; backdrop-filter:blur(12px); }
+.toast:hover { transform:translateX(-4px); border-color:rgba(245,158,11,0.6); box-shadow:0 8px 40px rgba(245,158,11,0.15); }
+.toast.closing { animation:slideOut 0.3s ease forwards; }
+.toast-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.toast-icon.high { background:rgba(239,68,68,0.15); color:#F87171; }
+.toast-icon.medium { background:rgba(245,158,11,0.15); color:#FBBF24; }
+.toast-title { font-weight:600; font-size:13px; margin-bottom:3px; line-height:1.4; }
+.toast-meta { font-size:11px; color:var(--text-muted); }
+.toast-close { color:var(--text-muted); cursor:pointer; font-size:16px; line-height:1; }
+.toast-close:hover { color:white; }
+@keyframes slideIn { from{opacity:0; transform:translateX(120px);} to{opacity:1; transform:translateX(0);} }
+@keyframes slideOut { from{opacity:1; transform:translateX(0);} to{opacity:0; transform:translateX(120px);} }
+@keyframes countPulse { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+.count-update { animation:countPulse 0.5s ease; }
+@keyframes newAlert { from{background:rgba(245,158,11,0.1);} to{background:var(--bg-secondary);} }
+.alert-new { animation:newAlert 2s ease; }
+</style>
+
+<!-- Toast Container -->
+<div id="toastContainer"></div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid animate-in delay-1">
+    <div class="kpi-card">
+        <div class="kpi-label"><i class="fas fa-exclamation-circle" style="color:var(--accent-red)"></i> High Severity</div>
+        <div class="kpi-value red" id="highCount">{{ alerts|selectattr('severity', 'equalto', 'high')|list|length }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label"><i class="fas fa-exclamation-triangle" style="color:var(--accent-amber)"></i> Medium Severity</div>
+        <div class="kpi-value amber" id="medCount">{{ alerts|selectattr('severity', 'equalto', 'medium')|list|length }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label"><i class="fas fa-bell" style="color:var(--accent-blue)"></i> Total Active Alerts</div>
+        <div class="kpi-value blue" id="totalCount">{{ alerts|length }}</div>
+    </div>
+</div>
+
+<!-- Alert List -->
+<div class="card animate-in delay-2">
+    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+        <span><i class="fas fa-list"></i> Active Alerts</span>
+        <span id="alertTimestamp" style="font-size:11px; font-weight:400; color:var(--text-muted);"></span>
+    </div>
+    <div id="alertList">
+    {% for alert in alerts %}
+    <div class="alert-row" data-id="{{ alert.id }}" style="padding:1rem; margin-bottom:0.75rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border-left:4px solid {% if alert.severity == 'high' %}var(--accent-red){% else %}var(--accent-amber){% endif %}; display:flex; align-items:center; gap:1rem;">
+        <div>
+            <i class="fas {% if alert.severity == 'high' %}fa-exclamation-circle{% else %}fa-exclamation-triangle{% endif %}" style="font-size:24px; color:{% if alert.severity == 'high' %}var(--accent-red){% else %}var(--accent-amber){% endif %};"></i>
+        </div>
+        <div style="flex:1;">
+            <div style="font-weight:600; margin-bottom:4px;">{{ alert.message }}</div>
+            <div style="display:flex; gap:1rem; font-size:12px; color:var(--text-muted); flex-wrap:wrap;">
+                <span><i class="fas fa-tag"></i> {{ alert.alert_type|replace('_',' ')|title }}</span>
+                {% if alert.airline %}<span><i class="fas fa-plane"></i> {{ alert.airline }}</span>{% endif %}
+                <span><i class="fas fa-chart-bar"></i> Value: {{ "%.1f"|format(alert.metric_value) }} / Threshold: {{ "%.1f"|format(alert.threshold) }}</span>
+            </div>
+        </div>
+        <div><span class="badge {{ alert.severity }}">{{ alert.severity|upper }}</span></div>
+    </div>
+    {% endfor %}
+    </div>
+    {% if not alerts %}
+    <div id="noAlerts" style="text-align:center; padding:3rem; color:var(--text-muted);">
+        <i class="fas fa-check-circle" style="font-size:48px; color:var(--accent-green); margin-bottom:1rem; display:block;"></i>
+        <h3>No Active Alerts</h3>
+        <p>All systems operating within normal parameters</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+let knownAlertIds = new Set();
+let isFirstLoad = true;
+
+document.querySelectorAll('.alert-row').forEach(el => knownAlertIds.add(el.dataset.id));
+
+function showToast(alert) {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `
+        <div class="toast-icon ${alert.severity}">
+            <i class="fas ${alert.severity==='high'?'fa-exclamation-circle':'fa-exclamation-triangle'}"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div class="toast-title">${alert.message}</div>
+            <div class="toast-meta"><i class="fas fa-plane"></i> ${alert.airline||'All'} &bull; ${(alert.alert_type||'').replace(/_/g,' ')}</div>
+        </div>
+        <span class="toast-close" onclick="this.parentElement.classList.add('closing');setTimeout(()=>this.parentElement.remove(),300)">&times;</span>
+    `;
+    c.prepend(t);
+    if (document.getElementById('soundToggle').checked) playSound();
+    setTimeout(() => { if(t.parentElement) { t.classList.add('closing'); setTimeout(()=>t.remove(),300); }}, 8000);
+}
+
+function playSound() {
+    try {
+        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.setValueAtTime(880, ctx.currentTime);
+        o.frequency.setValueAtTime(660, ctx.currentTime+0.1);
+        g.gain.setValueAtTime(0.2, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+0.3);
+        o.start(ctx.currentTime); o.stop(ctx.currentTime+0.3);
+    } catch(e){}
+}
+
+function updateTimestamp() {
+    const t = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('lastUpdate').textContent = t;
+    document.getElementById('alertTimestamp').textContent = 'Updated: ' + t;
+}
+
+function updateCount(id, val) {
+    const el = document.getElementById(id);
+    if (el && el.textContent != String(val)) { el.textContent=val; el.classList.remove('count-update'); void el.offsetWidth; el.classList.add('count-update'); }
+}
+
+async function pollAlerts() {
+    try {
+        const r = await fetch('/api/alerts');
+        if (!r.ok) return;
+        const d = await r.json();
+        d.alerts.forEach(a => {
+            const id = String(a.id);
+            if (!knownAlertIds.has(id)) { knownAlertIds.add(id); if (!isFirstLoad) showToast(a); }
+        });
+        isFirstLoad = false;
+        updateCount('highCount', d.alerts.filter(a=>a.severity==='high').length);
+        updateCount('medCount', d.alerts.filter(a=>a.severity==='medium').length);
+        updateCount('totalCount', d.count);
+        const nb = document.querySelector('.alert-badge');
+        if (nb) nb.textContent = d.count;
+        updateTimestamp();
+    } catch(e){}
+}
+
+// Demo alerts for presentation (simulates new alerts popping in)
+const demos = [
+    {id:'d1',message:'Saudia: Satisfaction dropped below 55% on RUH→JED route',severity:'high',alert_type:'Low_Satisfaction',airline:'Saudia',metric_value:52.3,threshold:55},
+    {id:'d2',message:'Flynas: Delay rate exceeded 28% at Dammam Airport',severity:'medium',alert_type:'High_Delay_Rate',airline:'Flynas',metric_value:28.4,threshold:25},
+    {id:'d3',message:'Flyadeal: Baggage claim time critical — avg 43 minutes',severity:'high',alert_type:'Service_Warning',airline:'Flyadeal',metric_value:43.1,threshold:40},
+    {id:'d4',message:'Saudia: Hajj season crowd level critical at JED',severity:'high',alert_type:'Crowd_Alert',airline:'Saudia',metric_value:95,threshold:85},
+    {id:'d5',message:'Flynas: Complaint spike detected for "Meal Quality" topic',severity:'medium',alert_type:'Complaint_Spike',airline:'Flynas',metric_value:89,threshold:65},
+];
+let di = 0;
+function nextDemo() {
+    if (di < demos.length) { showToast(demos[di]); di++; setTimeout(nextDemo, 25000+Math.random()*20000); }
+}
+setTimeout(nextDemo, 15000); // First demo after 15 seconds
+
+updateTimestamp();
+setInterval(pollAlerts, 30000);
+</script>
+{% endblock %}

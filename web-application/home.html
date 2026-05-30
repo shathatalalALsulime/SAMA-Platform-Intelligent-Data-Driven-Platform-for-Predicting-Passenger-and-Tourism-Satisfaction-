@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}SAMA Platform — Saudi Aviation Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h1><span class="gradient-text">SAMA Platform</span></h1>
+    <p>منصة سما الذكية — Intelligent Data-Driven Platform for Saudi Aviation Analytics</p>
+</div>
+
+<!-- KPI Overview -->
+<div class="kpi-grid">
+    <div class="kpi-card animate-in delay-1">
+        <div class="kpi-label"><i class="fas fa-plane" style="color:var(--accent-blue)"></i> Total Flights</div>
+        <div class="kpi-value blue">{{ "{:,.0f}".format(overall.total_flights) }}</div>
+    </div>
+    <div class="kpi-card animate-in delay-1">
+        <div class="kpi-label"><i class="fas fa-clock" style="color:var(--accent-green)"></i> On-Time Rate</div>
+        <div class="kpi-value green">{{ "%.1f"|format(overall.ontime_rate) }}%</div>
+    </div>
+    <div class="kpi-card animate-in delay-2">
+        <div class="kpi-label"><i class="fas fa-smile" style="color:var(--accent-cyan)"></i> Avg Satisfaction</div>
+        <div class="kpi-value cyan">{{ "%.1f"|format(overall.avg_satisfaction) }}</div>
+        <span class="kpi-unit">/ 100</span>
+    </div>
+    <div class="kpi-card animate-in delay-2">
+        <div class="kpi-label"><i class="fas fa-heart" style="color:var(--accent-green)"></i> Positive Reviews</div>
+        <div class="kpi-value green">{{ "%.1f"|format(overall.positive_rate) }}%</div>
+    </div>
+    <div class="kpi-card animate-in delay-3">
+        <div class="kpi-label"><i class="fas fa-hourglass-half" style="color:var(--accent-amber)"></i> Avg Delay</div>
+        <div class="kpi-value amber">{{ "%.0f"|format(overall.avg_delay) }}</div>
+        <span class="kpi-unit">minutes</span>
+    </div>
+    <div class="kpi-card animate-in delay-3">
+        <div class="kpi-label"><i class="fas fa-exclamation-triangle" style="color:var(--accent-red)"></i> Complaint Rate</div>
+        <div class="kpi-value red">{{ "%.1f"|format(overall.complaint_rate) }}%</div>
+    </div>
+</div>
+
+<!-- Airline Cards -->
+<div class="grid-3 animate-in delay-2">
+    {% for airline in airlines %}
+    <div class="card" style="border-top: 3px solid {{ airline.color }};">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h3 style="font-size:20px; font-weight:700;">{{ airline.name }}</h3>
+            <span style="font-size:13px; color:var(--text-muted);">{{ "{:,}".format(airline.flights) }} flights</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div>
+                <div class="kpi-label">On-Time</div>
+                <div style="font-size:24px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--accent-green);">{{ airline.ontime }}%</div>
+                <div class="progress-bar"><div class="fill" style="width:{{ airline.ontime }}%; background:var(--accent-green);"></div></div>
+            </div>
+            <div>
+                <div class="kpi-label">Satisfaction</div>
+                <div style="font-size:24px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--accent-cyan);">{{ airline.satisfaction }}</div>
+                <div class="progress-bar"><div class="fill" style="width:{{ airline.satisfaction }}%; background:var(--accent-cyan);"></div></div>
+            </div>
+            <div>
+                <div class="kpi-label">Positive Reviews</div>
+                <div style="font-size:24px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--accent-blue);">{{ airline.sentiment }}%</div>
+                <div class="progress-bar"><div class="fill" style="width:{{ airline.sentiment }}%; background:var(--accent-blue);"></div></div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Charts -->
+<div class="grid-2 animate-in delay-3">
+    <div class="card">
+        <div class="card-title"><i class="fas fa-chart-bar"></i> Airline Comparison</div>
+        <div class="chart-container"><canvas id="comparisonChart"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-title"><i class="fas fa-chart-pie"></i> Flight Status Distribution</div>
+        <div class="chart-container"><canvas id="statusChart"></canvas></div>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="grid-3 animate-in delay-4">
+    <a href="/traveler" class="card" style="text-decoration:none; text-align:center; cursor:pointer;">
+        <i class="fas fa-suitcase-rolling" style="font-size:32px; color:var(--accent-blue); margin-bottom:1rem;"></i>
+        <h3 style="margin-bottom:0.5rem;">Traveler Dashboard</h3>
+        <p style="color:var(--text-muted); font-size:14px;">Compare airlines, explore routes, check ratings</p>
+    </a>
+    <a href="/airline" class="card" style="text-decoration:none; text-align:center; cursor:pointer;">
+        <i class="fas fa-chart-line" style="font-size:32px; color:var(--accent-green); margin-bottom:1rem;"></i>
+        <h3 style="margin-bottom:0.5rem;">Airline Dashboard</h3>
+        <p style="color:var(--text-muted); font-size:14px;">KPIs, trends, performance monitoring</p>
+    </a>
+    <a href="/predictions" class="card" style="text-decoration:none; text-align:center; cursor:pointer;">
+        <i class="fas fa-brain" style="font-size:32px; color:var(--accent-purple); margin-bottom:1rem;"></i>
+        <h3 style="margin-bottom:0.5rem;">Predictions</h3>
+        <p style="color:var(--text-muted); font-size:14px;">AI-powered delay risk & satisfaction prediction</p>
+    </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+fetch('/api/chart/airline_comparison').then(r=>r.json()).then(data => {
+    const airlines = Object.keys(data);
+    const colors = {'Saudia':'#006B3F','Flynas':'#7B2D8E','Flyadeal':'#E31837'};
+    new Chart(document.getElementById('comparisonChart'), {
+        type: 'bar',
+        data: {
+            labels: ['On-Time %', 'Satisfaction', 'Positive %', 'Service', 'Efficiency'],
+            datasets: airlines.map(a => ({
+                label: a, backgroundColor: colors[a] + 'CC',
+                borderColor: colors[a], borderWidth: 1, borderRadius: 6,
+                data: [data[a].ontime, data[a].satisfaction, data[a].positive, data[a].service*20, data[a].efficiency]
+            }))
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94A3B8' }}},
+            scales: { x: { ticks: { color: '#64748B' }, grid: { display: false }}, y: { ticks: { color: '#64748B' }, grid: { color: '#2A3548' }}}}
+    });
+});
+
+fetch('/api/chart/delay_by_airline').then(r=>r.json()).then(data => {
+    const airlines = Object.keys(data);
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['On-Time', 'Delayed', 'Cancelled'],
+            datasets: [{
+                data: [Object.values(data).reduce((s,d)=>s+d.ontime,0), Object.values(data).reduce((s,d)=>s+d.delayed,0), Object.values(data).reduce((s,d)=>s+d.cancelled,0)],
+                backgroundColor: ['#10B981CC', '#F59E0BCC', '#EF4444CC'],
+                borderColor: '#1A2332', borderWidth: 3
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8', padding: 20 }}}}
+    });
+});
+</script>
+{% endblock %}

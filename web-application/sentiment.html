@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Sentiment Analysis — SAMA Platform{% endblock %}
+{% block content %}
+<div class="page-header animate-in">
+    <h1><i class="fas fa-comments" style="color:var(--accent-cyan);"></i> <span class="gradient-text">Arabic Sentiment Analysis</span></h1>
+    <p>تحليل مشاعر الركاب من التغريدات العربية — NLP-powered passenger review analysis</p>
+</div>
+
+<!-- Sentiment Overview -->
+<div class="kpi-grid animate-in delay-1">
+    {% for s in sent_dist %}
+    <div class="kpi-card">
+        <div class="kpi-label">
+            {% if s.sentiment_category == 'إيجابي' %}<i class="fas fa-smile" style="color:var(--accent-green)"></i> Positive — إيجابي
+            {% elif s.sentiment_category == 'سلبي' %}<i class="fas fa-frown" style="color:var(--accent-red)"></i> Negative — سلبي
+            {% else %}<i class="fas fa-meh" style="color:var(--accent-amber)"></i> Neutral — محايد{% endif %}
+        </div>
+        <div class="kpi-value {% if s.sentiment_category == 'إيجابي' %}green{% elif s.sentiment_category == 'سلبي' %}red{% else %}amber{% endif %}">{{ "{:,}".format(s.cnt) }}</div>
+        <span class="kpi-unit">avg score: {{ s.avg_score }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="grid-2 animate-in delay-2">
+    <div class="card">
+        <div class="card-title"><i class="fas fa-chart-pie"></i> Sentiment Distribution</div>
+        <div class="chart-container"><canvas id="sentPie"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-title"><i class="fas fa-chart-bar"></i> Sentiment by Airline</div>
+        <div class="chart-container"><canvas id="sentAirline"></canvas></div>
+    </div>
+</div>
+
+<!-- Sample Reviews -->
+<div class="grid-2 animate-in delay-3">
+    <div class="card">
+        <div class="card-title" style="color:var(--accent-green);"><i class="fas fa-thumbs-up"></i> Top Positive Reviews — تغريدات إيجابية</div>
+        {% for r in pos_reviews %}
+        <div class="review-card">
+            <div class="review-text">{{ r.tweet_text[:150] }}{% if r.tweet_text|length > 150 %}...{% endif %}</div>
+            <div class="review-meta">
+                <span class="airline-tag {{ r.airline_name|lower }}">{{ r.airline_name }}</span>
+                <span>{{ r.topic }} • Score: <strong style="color:var(--accent-green)">{{ "%.2f"|format(r.sentiment_score) }}</strong></span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="card">
+        <div class="card-title" style="color:var(--accent-red);"><i class="fas fa-thumbs-down"></i> Top Negative Reviews — تغريدات سلبية</div>
+        {% for r in neg_reviews %}
+        <div class="review-card">
+            <div class="review-text">{{ r.tweet_text[:150] }}{% if r.tweet_text|length > 150 %}...{% endif %}</div>
+            <div class="review-meta">
+                <span class="airline-tag {{ r.airline_name|lower }}">{{ r.airline_name }}</span>
+                <span>{{ r.topic }} • Score: <strong style="color:var(--accent-red)">{{ "%.2f"|format(r.sentiment_score) }}</strong></span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const sentData = {{ sent_dist|tojson }};
+new Chart(document.getElementById('sentPie'), {
+    type: 'doughnut',
+    data: {
+        labels: sentData.map(s => s.sentiment_category),
+        datasets: [{data: sentData.map(s => s.cnt),
+            backgroundColor: sentData.map(s => s.sentiment_category === 'إيجابي' ? '#10B981CC' : (s.sentiment_category === 'سلبي' ? '#EF4444CC' : '#F59E0BCC')),
+            borderColor: '#1A2332', borderWidth: 3 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8', padding: 20 }}}}
+});
+
+// Sentiment by airline - stacked bar
+const airlineData = {{ sent_airline|tojson }};
+const airlines = [...new Set(airlineData.map(r => r.airline_name))];
+const sentCats = [...new Set(airlineData.map(r => r.sentiment_category))];
+const colorMap = {'إيجابي':'#10B981CC','سلبي':'#EF4444CC','محايد':'#F59E0BCC'};
+
+new Chart(document.getElementById('sentAirline'), {
+    type: 'bar',
+    data: {
+        labels: airlines,
+        datasets: sentCats.map(cat => ({
+            label: cat,
+            data: airlines.map(a => { const r = airlineData.find(x => x.airline_name===a && x.sentiment_category===cat); return r ? r.cnt : 0; }),
+            backgroundColor: colorMap[cat] || '#64748BCC', borderRadius: 4
+        }))
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94A3B8' }}},
+        scales: { x: { stacked: true, ticks: { color: '#94A3B8' }, grid: { display: false }},
+                  y: { stacked: true, ticks: { color: '#64748B' }, grid: { color: '#2A3548' }}}}
+});
+</script>
+{% endblock %}

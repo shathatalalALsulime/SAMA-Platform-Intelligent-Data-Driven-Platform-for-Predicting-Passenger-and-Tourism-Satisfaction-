@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMA Platform — منصة سما</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root { --bg:#0B0F1A; --card:#1A2332; --border:#2A3548; --text:#F1F5F9; --muted:#64748B; --blue:#3B82F6; --cyan:#06B6D4; --green:#10B981; --purple:#8B5CF6; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Plus Jakarta Sans','IBM Plex Sans Arabic',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
+        body::before { content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(ellipse at 30% 40%,rgba(59,130,246,0.08) 0%,transparent 50%),radial-gradient(ellipse at 70% 60%,rgba(6,182,212,0.06) 0%,transparent 50%); z-index:-1; animation:drift 15s ease-in-out infinite alternate; }
+        @keyframes drift { 0%{transform:translate(0,0)} 100%{transform:translate(-2%,-2%) rotate(1deg)} }
+
+        .landing { text-align:center; max-width:800px; padding:2rem; }
+        .logo-big { width:100px; height:100px; margin:0 auto 1.5rem; }
+        .logo-big img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 30px rgba(59,130,246,0.3)); }
+        .landing h1 { font-size:48px; font-weight:800; letter-spacing:-1.5px; margin-bottom:0.5rem; }
+        .landing h1 .gradient { background:linear-gradient(135deg,#3B82F6,#06B6D4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .landing p { color:var(--muted); font-size:18px; margin-bottom:3rem; font-family:'IBM Plex Sans Arabic',sans-serif; }
+        .landing .subtitle { font-size:15px; color:#94A3B8; margin-bottom:2rem; }
+
+        .portals { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-bottom:2rem; }
+        .portal-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:2.5rem 2rem; cursor:pointer; text-decoration:none; color:var(--text); transition:all 0.3s; position:relative; overflow:hidden; }
+        .portal-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; transition:opacity 0.3s; opacity:0; }
+        .portal-card:hover { border-color:rgba(59,130,246,0.4); transform:translateY(-4px); box-shadow:0 16px 48px rgba(0,0,0,0.4); }
+        .portal-card:hover::before { opacity:1; }
+        .portal-card.traveler::before { background:linear-gradient(90deg,#3B82F6,#06B6D4); }
+        .portal-card.airline::before { background:linear-gradient(90deg,#10B981,#06B6D4); }
+
+        .portal-icon { width:64px; height:64px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 1.25rem; }
+        .portal-card.traveler .portal-icon { background:rgba(59,130,246,0.15); color:var(--blue); }
+        .portal-card.airline .portal-icon { background:rgba(16,185,129,0.15); color:var(--green); }
+
+        .portal-card h2 { font-size:22px; font-weight:700; margin-bottom:0.5rem; }
+        .portal-card h3 { font-size:16px; font-weight:600; color:#94A3B8; margin-bottom:1rem; font-family:'IBM Plex Sans Arabic',sans-serif; }
+        .portal-card ul { list-style:none; text-align:right; direction:rtl; font-family:'IBM Plex Sans Arabic',sans-serif; }
+        .portal-card ul li { font-size:13px; color:var(--muted); padding:4px 0; border-bottom:1px solid rgba(42,53,72,0.5); }
+        .portal-card ul li:last-child { border:none; }
+
+        .footer-note { color:var(--muted); font-size:12px; margin-top:1rem; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+        .animate { animation:fadeUp 0.6s ease forwards; }
+        .d1 { animation-delay:0.1s; opacity:0; }
+        .d2 { animation-delay:0.2s; opacity:0; }
+        .d3 { animation-delay:0.3s; opacity:0; }
+
+        @media(max-width:600px) { .portals{grid-template-columns:1fr;} .landing h1{font-size:32px;} }
+    </style>
+</head>
+<body>
+    <div class="landing">
+        <div class="logo-big animate"><img src="{{ url_for('static', filename='logo.png') }}" alt="SAMA Logo"></div>
+        <h1 class="animate d1"><span class="gradient">SAMA Platform</span></h1>
+        <p class="animate d1">منصة سما الذكية لتحليل بيانات الطيران السعودي</p>
+        <p class="subtitle animate d2">Intelligent Data-Driven Platform for Saudi Aviation Analytics</p>
+
+        <div class="portals">
+            <a href="/login/traveler" class="portal-card traveler animate d2">
+                <div class="portal-icon"><i class="fas fa-user"></i></div>
+                <h2>Traveler Portal</h2>
+                <h3>بوابة المسافر</h3>
+                <ul>
+                    <li>🔍 مقارنة شركات الطيران والأسعار</li>
+                    <li>⭐ تقييمات بناءً على تجارب الركاب</li>
+                    <li>✈️ اختيار الرحلة المناسبة</li>
+                    <li>📊 مستوى الراحة والأكل والمواعيد</li>
+                </ul>
+            </a>
+            <a href="/login/airline" class="portal-card airline animate d3">
+                <div class="portal-icon"><i class="fas fa-plane"></i></div>
+                <h2>Airline Portal</h2>
+                <h3>بوابة شركة الطيران</h3>
+                <ul>
+                    <li>📈 لوحة تحكم تحليلية شاملة</li>
+                    <li>⏱ أوقات الانتظار وتقييم المطارات</li>
+                    <li>🔔 نظام إنذار مبكر</li>
+                    <li>🧠 تنبؤات الذكاء الاصطناعي</li>
+                </ul>
+            </a>
+        </div>
+
+        <div class="footer-note">
+            SAMA Platform © 2025 — BSc Data Science — Umm Al-Qura University
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}AI Predictions — SAMA Platform{% endblock %}
+{% block content %}
+<div class="page-header animate-in">
+    <h1><i class="fas fa-brain" style="color:var(--accent-purple);"></i> <span class="gradient-text">AI Predictions</span></h1>
+    <p>التنبؤ الذكي — 5 ML models running in real-time on your input</p>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+    <!-- LEFT: Form -->
+    <div class="card animate-in delay-1">
+        <div class="card-title"><i class="fas fa-sliders-h"></i> Flight Parameters</div>
+        <form method="POST">
+            <div class="form-grid">
+                <div class="form-group"><label>Airline</label>
+                    <select name="airline"><option value="Saudia">Saudia</option><option value="Flynas">Flynas</option><option value="Flyadeal">Flyadeal</option></select></div>
+                <div class="form-group"><label>Origin</label>
+                    <select name="origin">{% for c, i in airports.items() %}<option value="{{ c }}">{{ i.en }} ({{ c }})</option>{% endfor %}</select></div>
+                <div class="form-group"><label>Destination</label>
+                    <select name="destination">{% for c, i in airports.items() %}<option value="{{ c }}" {% if c=='JED' %}selected{% endif %}>{{ i.en }} ({{ c }})</option>{% endfor %}</select></div>
+                <div class="form-group"><label>Aircraft</label>
+                    <select name="aircraft"><option>Airbus A320</option><option>Airbus A330</option><option>Boeing 777</option><option>Boeing 787</option><option>Boeing 747</option></select></div>
+                <div class="form-group"><label>Weather</label>
+                    <select name="weather"><option>Clear</option><option>Sunny</option><option>Cloudy</option><option>Rain</option><option>Sandstorm</option><option>Fog</option><option>Humid</option><option>Hot</option></select></div>
+                <div class="form-group"><label>Month</label>
+                    <select name="month">{% for m in range(1,13) %}<option value="{{ m }}">{{ m }}</option>{% endfor %}</select></div>
+                <div class="form-group"><label>Day of Week</label>
+                    <select name="day"><option>Sunday</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select></div>
+                <div class="form-group"><label>Departure Hour</label>
+                    <input type="number" name="hour" value="10" min="0" max="23"></div>
+                <div class="form-group"><label>Load Factor %</label>
+                    <input type="number" name="load_factor" value="75" min="40" max="100" step="0.1"></div>
+                <div class="form-group"><label>Service Rating (1-5)</label>
+                    <select name="service_rating"><option value="5">5 — Excellent</option><option value="4" selected>4 — Good</option><option value="3">3 — Average</option><option value="2">2 — Poor</option><option value="1">1 — Bad</option></select></div>
+                <div class="form-group"><label>Check-in Time (min)</label>
+                    <input type="number" name="checkin_time" value="15" min="5" max="45"></div>
+                <div class="form-group"><label>Boarding Time (min)</label>
+                    <input type="number" name="boarding_time" value="25" min="15" max="50"></div>
+                <div class="form-group"><label>Baggage Claim (min)</label>
+                    <input type="number" name="baggage_time" value="30" min="15" max="60"></div>
+            </div>
+            <div style="margin-top:1.5rem;">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-magic"></i> Run All 5 Models — تنبؤ</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- RIGHT: Results from ALL 5 models -->
+    <div>
+        {% if result and not result.error %}
+
+        <!-- Model 1: Delay Risk -->
+        <div class="result-card animate-in delay-1" style="margin-bottom:1rem; border-left:4px solid {% if result.delay_risk=='Low' %}var(--accent-green){% elif result.delay_risk=='Medium' %}var(--accent-amber){% else %}var(--accent-red){% endif %};">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Model 1 — Delay Risk (Random Forest)</span>
+                <span class="badge {{ result.delay_risk|lower }}">{{ result.delay_risk }}</span>
+            </div>
+            <div class="big-number" style="font-size:48px; color:{% if result.delay_risk=='Low' %}var(--accent-green){% elif result.delay_risk=='Medium' %}var(--accent-amber){% else %}var(--accent-red){% endif %};">{{ result.delay_probability }}%</div>
+            <div class="progress-bar" style="margin-top:8px;"><div class="fill" style="width:{{ result.delay_probability }}%; background:{% if result.delay_risk=='Low' %}var(--accent-green){% elif result.delay_risk=='Medium' %}var(--accent-amber){% else %}var(--accent-red){% endif %};"></div></div>
+        </div>
+
+        <!-- Model 2: Delay Duration -->
+        <div class="result-card animate-in delay-1" style="margin-bottom:1rem; border-left:4px solid var(--accent-amber);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Model 2 — Estimated Delay (Random Forest)</span>
+            </div>
+            <div style="font-size:36px; font-weight:800; font-family:'JetBrains Mono',monospace; color:var(--accent-amber);">
+                ~{{ result.delay_duration|int }} <span style="font-size:16px; color:var(--text-muted);">minutes</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">If delayed, expected duration based on conditions</div>
+        </div>
+
+        <!-- Model 4: Satisfaction Score -->
+        <div class="result-card animate-in delay-2" style="margin-bottom:1rem; border-left:4px solid {% if result.sat_score >= 75 %}var(--accent-green){% elif result.sat_score >= 50 %}var(--accent-amber){% else %}var(--accent-red){% endif %};">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Model 4 — Satisfaction Score (LightGBM)</span>
+            </div>
+            <div class="big-number" style="font-size:48px; color:{% if result.sat_score >= 75 %}var(--accent-green){% elif result.sat_score >= 50 %}var(--accent-amber){% else %}var(--accent-red){% endif %};">{{ result.sat_score }}</div>
+            <div style="color:var(--text-muted); font-size:14px;">/100</div>
+            <div class="progress-bar" style="margin-top:8px;"><div class="fill" style="width:{{ result.sat_score }}%; background:{% if result.sat_score >= 75 %}var(--accent-green){% elif result.sat_score >= 50 %}var(--accent-amber){% else %}var(--accent-red){% endif %};"></div></div>
+        </div>
+
+        <!-- Model 3: Satisfaction Level -->
+        <div class="result-card animate-in delay-2" style="margin-bottom:1rem; border-left:4px solid var(--accent-cyan);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Model 3 — Satisfaction Level (Random Forest)</span>
+                <span class="badge {% if result.sat_level=='High' %}low{% elif result.sat_level=='Medium' %}medium{% else %}high{% endif %}">{{ result.sat_level }}</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-top:0.75rem;">
+                <div style="text-align:center; padding:8px; border-radius:8px; background:{% if result.sat_level=='Low' %}rgba(239,68,68,0.15){% else %}var(--bg-secondary){% endif %};">
+                    <div style="font-size:20px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--accent-red);">{{ result.sat_level_proba.Low }}%</div>
+                    <div style="font-size:11px; color:var(--text-muted);">Low</div>
+                </div>
+                <div style="text-align:center; padding:8px; border-radius:8px; background:{% if result.sat_level=='Medium' %}rgba(245,158,11,0.15){% else %}var(--bg-secondary){% endif %};">
+                    <div style="font-size:20px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--accent-amber);">{{ result.sat_level_proba.Medium }}%</div>
+                    <div style="font-size:11px; color:var(--text-muted);">Medium</div>
+                </div>
+                <div style="text-align:center; padding:8px; border-radius:8px; background:{% if result.sat_level=='High' %}rgba(16,185,129,0.15){% else %}var(--bg-secondary){% endif %};">
+                    <div style="font-size:20px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--accent-green);">{{ result.sat_level_proba.High }}%</div>
+                    <div style="font-size:11px; color:var(--text-muted);">High</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model 5: Seasonal Forecast -->
+        <div class="result-card animate-in delay-3" style="border-left:4px solid var(--accent-purple);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Model 5 — Seasonal Forecast (LightGBM)</span>
+                <span class="badge {{ result.seasonal_risk|lower }}">{{ result.seasonal_risk }} Season Risk</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:0.75rem;">
+                <div style="text-align:center;">
+                    <div style="font-size:28px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--accent-cyan);">{{ result.seasonal_sat }}</div>
+                    <div style="font-size:11px; color:var(--text-muted);">Forecasted Satisfaction</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:28px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--accent-amber);">{{ result.seasonal_del }}%</div>
+                    <div style="font-size:11px; color:var(--text-muted);">Forecasted Delay Rate</div>
+                </div>
+            </div>
+        </div>
+
+        {% elif result and result.error %}
+        <div class="card" style="border-color:var(--accent-red);"><p style="color:var(--accent-red);"><i class="fas fa-exclamation-circle"></i> Error: {{ result.error }}</p></div>
+        {% else %}
+        <div class="card" style="text-align:center; padding:3rem;">
+            <i class="fas fa-plane-departure" style="font-size:48px; color:var(--text-muted); margin-bottom:1rem;"></i>
+            <h3 style="color:var(--text-secondary); margin-bottom:0.5rem;">Enter flight details</h3>
+            <p style="color:var(--text-muted); font-size:14px; margin-bottom:1.5rem;">Fill in the parameters and click predict to run all 5 models</p>
+            <div style="text-align:left; max-width:400px; margin:0 auto;">
+                <div style="font-size:13px; color:var(--text-secondary); line-height:2;">
+                    <div>🔴 <strong>Model 1:</strong> Delay Risk — Random Forest classifier</div>
+                    <div>🟠 <strong>Model 2:</strong> Delay Duration — Random Forest regressor</div>
+                    <div>🟢 <strong>Model 3:</strong> Satisfaction Level — Random Forest classifier</div>
+                    <div>🔵 <strong>Model 4:</strong> Satisfaction Score — LightGBM regressor</div>
+                    <div>🟣 <strong>Model 5:</strong> Seasonal Forecast — LightGBM time-series</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
